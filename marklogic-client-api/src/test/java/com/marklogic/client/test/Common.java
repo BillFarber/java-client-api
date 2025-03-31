@@ -156,7 +156,11 @@ public class Common {
 	}
 
 	public static MarkLogicVersion getMarkLogicVersion() {
-		String version = newServerAdminClient().newServerEval().javascript("xdmp.version()").evalAs(String.class);
+		return getMarkLogicVersion(newServerAdminClient());
+	}
+
+	public static MarkLogicVersion getMarkLogicVersion(DatabaseClient client) {
+		String version = client.newServerEval().javascript("xdmp.version()").evalAs(String.class);
 		return new MarkLogicVersion(version);
 	}
 
