@@ -5,9 +5,9 @@ import com.marklogic.client.DatabaseClientFactory;
 import com.marklogic.client.ForbiddenUserException;
 import com.marklogic.client.MarkLogicIOException;
 import com.marklogic.client.test.Common;
-import com.marklogic.client.test.MarkLogicVersion;
 import com.marklogic.client.test.junit5.DisabledWhenUsingReverseProxyServer;
 import com.marklogic.client.test.junit5.RequireSSLExtension;
+import com.marklogic.client.test.junit5.RequiresML11OrLower;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -85,24 +85,9 @@ class OneWaySSLTest {
 		assertTrue(ex.getCause() instanceof SSLException, "Unexpected cause: " + ex.getCause());
 	}
 
+	@ExtendWith(RequiresML11OrLower.class)
 	@Test
 	void noSslContext() throws Exception {
-		SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-		sslContext.init(null, new TrustManager[]{Common.TRUST_ALL_MANAGER}, null);
-		DatabaseClient sslClient = Common.newClientBuilder()
-			.withUsername(Common.SERVER_ADMIN_USER)
-			.withPassword(Common.SERVER_ADMIN_PASS)
-			.withSSLProtocol("TLSv1.2")
-			.withTrustManager(Common.TRUST_ALL_MANAGER)
-			.withSSLHostnameVerifier(DatabaseClientFactory.SSLHostnameVerifier.ANY)
-			.build();
-		MarkLogicVersion markLogicVersion = Common.getMarkLogicVersion(sslClient);
-		// Currently failing on 12-nightly due to https://progresssoftware.atlassian.net/browse/MLE-17505 .
-		if (markLogicVersion.getMajor() > 11) {
-			System.out.println("MarkLogic major version is 12 or higher, skipping test");
-			return;
-		}
-
 		DatabaseClient client = Common.newClientBuilder().build();
 
 		DatabaseClient.ConnectionResult result = client.checkConnection();
