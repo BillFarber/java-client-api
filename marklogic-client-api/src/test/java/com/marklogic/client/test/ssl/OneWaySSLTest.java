@@ -5,10 +5,14 @@ import com.marklogic.client.DatabaseClientFactory;
 import com.marklogic.client.ForbiddenUserException;
 import com.marklogic.client.MarkLogicIOException;
 import com.marklogic.client.test.Common;
+import com.marklogic.client.test.MarkLogicVersion;
 import com.marklogic.client.test.junit5.DisabledWhenUsingReverseProxyServer;
 import com.marklogic.client.test.junit5.RequireSSLExtension;
 import com.marklogic.client.test.junit5.RequiresML11OrLower;
-import org.junit.jupiter.api.Test;
+import com.marklogic.client.test.junit5.RequiresML12;
+import com.marklogic.mgmt.ManageClient;
+import com.marklogic.mgmt.resource.appservers.ServerManager;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import javax.net.ssl.SSLContext;
@@ -28,6 +32,26 @@ import static org.junit.jupiter.api.Assertions.*;
 	RequireSSLExtension.class
 })
 class OneWaySSLTest {
+	private static ManageClient manageClient;
+
+	@BeforeAll
+	static void setup() {
+		manageClient = Common.newManageClient();
+	}
+
+	@AfterEach
+	void teardown() {
+		MarkLogicVersion markLogicVersion = Common.getMarkLogicVersion();
+		if (markLogicVersion.getMajor() >= 12) {
+			setAppServerMinimumTLSVersion("TLSv1.2");
+		}
+	}
+
+	private static void setAppServerMinimumTLSVersion(String minTLSVersion) {
+		new ServerManager(manageClient).save(
+			Common.newServerPayload().put("ssl-min-allow-tls", minTLSVersion).toString()
+		);
+	}
 
 	/**
 	 * Simple check for ensuring that an SSL connection can be made when the app server requires SSL to be used. This
@@ -35,7 +59,7 @@ class OneWaySSLTest {
 	 * is simply to ensure that some kind of SSL connection can be made. In production, a user would be expected to
 	 * use a real TrustManager.
 	 *
-	 * @throws Exception
+	 * @throws Exception - if an error occurs with building the SSLContext object.
 	 */
 	@Test
 	void trustAllManager() throws Exception {
@@ -104,5 +128,48 @@ class OneWaySSLTest {
 			"The user should get a clear message on why the connection failed as opposed to the previous error " +
 				"message of 'Server (not a REST instance?)'."
 		);
+	}
+
+	@Test
+	void tLS13ClientWithTLS12Server() throws Exception {
+		DatabaseClient client = buildTrustAllClientWithSSLProtocol("TLSv1.3");
+		DatabaseClient.ConnectionResult result = client.checkConnection();
+		assertEquals(0, result.getStatusCode(), "A value of zero implies that a connection was successfully made, " +
+			"which should happen since a 'trust all' manager is being used");
+		assertNull(result.getErrorMessage());
+	}
+
+	@ExtendWith(RequiresML12.class)
+	@Test
+	void tLS13ClientWithTLS13Server() throws Exception {
+		setAppServerMinimumTLSVersion("TLSv1.3");
+
+		DatabaseClient client = buildTrustAllClientWithSSLProtocol("TLSv1.3");
+		DatabaseClient.ConnectionResult result = client.checkConnection();
+		assertEquals(0, result.getStatusCode(), "A value of zero implies that a connection was successfully made, " +
+			"which should happen since a 'trust all' manager is being used");
+		assertNull(result.getErrorMessage());
+	}
+
+	@ExtendWith(RequiresML12.class)
+	@Test
+	void tLS12ClientWithTLS13ServerShouldFail() throws Exception {
+		setAppServerMinimumTLSVersion("TLSv1.3");
+
+		DatabaseClient client = buildTrustAllClientWithSSLProtocol("TLSv1.2");
+		MarkLogicIOException ex = Assertions.assertThrows(MarkLogicIOException.class, () -> client.checkConnection());
+		String expected = "Error occurred while calling https://localhost:8012/v1/ping; " +
+			"javax.net.ssl.SSLHandshakeException: Received fatal alert: protocol_version ; possible reasons for the " +
+			"error include that a MarkLogic app server may not be listening on the port, or MarkLogic was stopped or " +
+			"restarted during the request; check the MarkLogic server logs for more information.";
+		assertEquals(expected, ex.getMessage());
+	}
+
+	DatabaseClient buildTrustAllClientWithSSLProtocol(String sslProtocol) {
+		return Common.newClientBuilder()
+			.withSSLProtocol(sslProtocol)
+			.withTrustManager(Common.TRUST_ALL_MANAGER)
+			.withSSLHostnameVerifier(DatabaseClientFactory.SSLHostnameVerifier.ANY)
+			.build();
 	}
 }
