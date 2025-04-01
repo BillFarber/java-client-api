@@ -144,6 +144,14 @@ public class Common {
 			.build();
 	}
 
+	public static DatabaseClient newServerAdminServicesClient() {
+		return newClientBuilder()
+			.withPort(8000)
+			.withUsername(Common.SERVER_ADMIN_USER)
+			.withPassword(Common.SERVER_ADMIN_PASS)
+			.build();
+	}
+
 	public static DatabaseClient newEvalClient() {
 		return newEvalClient(null);
 	}
@@ -156,11 +164,7 @@ public class Common {
 	}
 
 	public static MarkLogicVersion getMarkLogicVersion() {
-		return getMarkLogicVersion(newServerAdminClient());
-	}
-
-	public static MarkLogicVersion getMarkLogicVersion(DatabaseClient client) {
-		String version = client.newServerEval().javascript("xdmp.version()").evalAs(String.class);
+		String version = newServerAdminServicesClient().newServerEval().javascript("xdmp.version()").evalAs(String.class);
 		return new MarkLogicVersion(version);
 	}
 
