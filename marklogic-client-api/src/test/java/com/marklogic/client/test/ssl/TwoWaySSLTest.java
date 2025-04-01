@@ -9,9 +9,9 @@ import com.marklogic.client.document.DocumentDescriptor;
 import com.marklogic.client.eval.EvalResultIterator;
 import com.marklogic.client.io.StringHandle;
 import com.marklogic.client.test.Common;
+import com.marklogic.client.test.MarkLogicVersion;
 import com.marklogic.client.test.junit5.DisabledWhenUsingReverseProxyServer;
 import com.marklogic.client.test.junit5.RequireSSLExtension;
-import com.marklogic.client.test.junit5.RequiresML11OrLower;
 import com.marklogic.mgmt.ManageClient;
 import com.marklogic.mgmt.resource.appservers.ServerManager;
 import com.marklogic.mgmt.resource.security.CertificateTemplateManager;
@@ -28,6 +28,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509TrustManager;
 import java.io.*;
 import java.nio.file.Path;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -43,8 +44,8 @@ import static org.junit.jupiter.api.Assertions.*;
 })
 public class TwoWaySSLTest {
 
-	private final static String TEST_DOCUMENT_URI = "/optic/test/musician1.json";
-	private final static String KEYSTORE_PASSWORD = "password";
+	private static final String TEST_DOCUMENT_URI = "/optic/test/musician1.json";
+	private static final String KEYSTORE_PASSWORD = "password";
 
 	// Used for creating a temporary JKS (Java KeyStore) file.
 	@TempDir
@@ -98,10 +99,15 @@ public class TwoWaySSLTest {
 	 * - When the breakpoint is hit, look for the location of the files in stdout.
 	 * - Copy those files to a more accessible location and use them for accessing the 8012 app server.
 	 */
-	// Currently failing on 12-nightly due to https://progresssoftware.atlassian.net/browse/MLE-17505 .
 	@Test
-	@ExtendWith(RequiresML11OrLower.class)
-	void digestAuthentication() {
+	void digestAuthentication() throws NoSuchAlgorithmException, KeyManagementException {
+		MarkLogicVersion markLogicVersion = Common.getMarkLogicVersion(buildClientWithCert());
+		// Currently failing on 12-nightly due to https://progresssoftware.atlassian.net/browse/MLE-17505 .
+		if (markLogicVersion.getMajor() > 11) {
+			System.out.println("MarkLogic major version is 12 or higher, skipping test");
+			return;
+		}
+
 		// This client uses our Java KeyStore file with a client certificate in it, so it should work.
 		DatabaseClient clientWithCert = Common.newClientBuilder()
 			.withKeyStorePath(keyStoreFile.getAbsolutePath())
@@ -491,5 +497,23 @@ public class TwoWaySSLTest {
 			new BufferedReader(new InputStreamReader(inputStream)).lines()
 				.forEach(consumer);
 		}
+	}
+
+	private DatabaseClient buildClientWithCert() {
+		return Common.newClientBuilder()
+			.withUsername(Common.SERVER_ADMIN_USER)
+			.withPassword(Common.SERVER_ADMIN_PASS)
+			.withKeyStorePath(keyStoreFile.getAbsolutePath())
+			.withKeyStorePassword(KEYSTORE_PASSWORD)
+
+			// Still need this as "common"/"strict" don't work for our temporary server certificate.
+			.withSSLHostnameVerifier(DatabaseClientFactory.SSLHostnameVerifier.ANY)
+
+			// Starting in 6.5.0, we can use a real trust manager as the server certificate is in the keystore.
+			.withTrustStorePath(trustStoreFile.getAbsolutePath())
+			.withTrustStorePassword(KEYSTORE_PASSWORD)
+			.withTrustStoreType("JKS")
+			.withTrustStoreAlgorithm("SunX509")
+			.build();
 	}
 }
