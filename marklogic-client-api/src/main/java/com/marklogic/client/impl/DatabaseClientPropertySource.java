@@ -159,7 +159,8 @@ public class DatabaseClientPropertySource {
 		final String authType = determineAuthType(connectionString);
 
 		final SSLUtil.SSLInputs sslInputs = buildSSLInputs(authType);
-		DatabaseClientFactory.SecurityContext securityContext = newSecurityContext(authType, connectionString, sslInputs);
+		String sslProcotolForCertificateAuth = getSSLProtocol(authType);
+		DatabaseClientFactory.SecurityContext securityContext = newSecurityContext(authType, connectionString, sslInputs, sslProcotolForCertificateAuth);
 		if (sslInputs.getSslContext() != null) {
 			securityContext.withSSLContext(sslInputs.getSslContext(), sslInputs.getTrustManager());
 		}
@@ -178,7 +179,7 @@ public class DatabaseClientPropertySource {
 		return (String) value;
 	}
 
-	private DatabaseClientFactory.SecurityContext newSecurityContext(String type, ConnectionString connectionString, SSLUtil.SSLInputs sslInputs) {
+	private DatabaseClientFactory.SecurityContext newSecurityContext(String type, ConnectionString connectionString, SSLUtil.SSLInputs sslInputs, String sslProtocol) {
 		switch (type.toLowerCase()) {
 			case DatabaseClientBuilder.AUTH_TYPE_BASIC:
 				return newBasicAuthContext(connectionString);
@@ -189,7 +190,7 @@ public class DatabaseClientPropertySource {
 			case DatabaseClientBuilder.AUTH_TYPE_KERBEROS:
 				return newKerberosAuthContext();
 			case DatabaseClientBuilder.AUTH_TYPE_CERTIFICATE:
-				return newCertificateAuthContext(sslInputs);
+				return newCertificateAuthContext(sslInputs, sslProtocol);
 			case DatabaseClientBuilder.AUTH_TYPE_SAML:
 				return newSAMLAuthContext();
 			case DatabaseClientBuilder.AUTH_TYPE_OAUTH:
@@ -261,15 +262,15 @@ public class DatabaseClientPropertySource {
 		return new DatabaseClientFactory.MarkLogicCloudAuthContext(apiKey, duration);
 	}
 
-	private DatabaseClientFactory.SecurityContext newCertificateAuthContext(SSLUtil.SSLInputs sslInputs) {
+	private DatabaseClientFactory.SecurityContext newCertificateAuthContext(SSLUtil.SSLInputs sslInputs, String sslProtocol) {
 		String file = getNullableStringValue("certificate.file");
 		String password = getNullableStringValue("certificate.password");
 		if (file != null && file.trim().length() > 0) {
 			try {
 				if (password != null && password.trim().length() > 0) {
-					return new DatabaseClientFactory.CertificateAuthContext(file, password, sslInputs.getTrustManager());
+					return new DatabaseClientFactory.CertificateAuthContext(file, password, sslInputs.getTrustManager(), sslProtocol);
 				}
-				return new DatabaseClientFactory.CertificateAuthContext(file, sslInputs.getTrustManager());
+				return new DatabaseClientFactory.CertificateAuthContext(file, sslInputs.getTrustManager(), sslProtocol);
 			} catch (Exception e) {
 				throw new RuntimeException("Unable to create CertificateAuthContext; cause " + e.getMessage(), e);
 			}

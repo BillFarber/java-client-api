@@ -913,8 +913,9 @@ public class DatabaseClientFactory {
   }
 
   public static class CertificateAuthContext extends AuthContext {
-    String certFile;
-    String certPassword;
+	  private static final String DEFAULT_SSL_PROTOCOL = "TLSv1.2";
+	  String certFile;
+	  String certPassword;
 
 	/**
      * Creates a CertificateAuthContext by initializing the SSLContext of the
@@ -973,13 +974,39 @@ public class DatabaseClientFactory {
      *           UnrecoverableKeyException.
      */
     public CertificateAuthContext(String certFile, X509TrustManager trustManager)
-        throws CertificateException, IOException,
-        UnrecoverableKeyException, KeyManagementException {
-        this.certFile = certFile;
-        this.trustManager = trustManager;
-        this.certPassword = "";
-        this.sslContext = createSSLContext();
-      }
+        	throws CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
+		this(certFile, "", trustManager, null);
+	}
+
+	  /**
+	   * Creates a CertificateAuthContext with a PKCS12 file. The SSLContext is
+	   * created from the information in the PKCS12 file. This constructor should
+	   * be called when the export password of the PKCS12 file is empty.
+	   *
+	   * @param certFile the p12 file which contains the client's private key and
+	   *          the client's certificate chain
+	   * @param trustManager the X509TrustManager object which is responsible for
+	   *          deciding if a credential should be trusted or not.
+	   * @param sslProtocol the version of the SSL protocol to use.
+	   * @throws CertificateException if any of the certificates in the certFile
+	   *           cannot be loaded
+	   * @throws UnrecoverableKeyException if the certFile has an export password
+	   * @throws KeyManagementException if initializing the SSLContext with the
+	   *           KeyManager fails
+	   * @throws IOException if there is an I/O or format problem with the
+	   *           keystore data, if a password is required but not given, or if
+	   *           the given password was incorrect or if the certFile path is
+	   *           invalid or if the file is not found If the error is due to a
+	   *           wrong password, the cause of the IOException should be an
+	   *           UnrecoverableKeyException.
+	   */
+	  public CertificateAuthContext(String certFile, X509TrustManager trustManager, String sslProtocol)
+		  		throws CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
+		  this.certFile = certFile;
+		  this.trustManager = trustManager;
+		  this.certPassword = "";
+		  this.sslContext = createSSLContext(sslProtocol);
+	  }
 
     /**
      * Creates a CertificateAuthContext with a PKCS12 file. The SSLContext
@@ -1000,15 +1027,46 @@ public class DatabaseClientFactory {
      *                     should be an UnrecoverableKeyException.
      */
     public CertificateAuthContext(String certFile, String certPassword, X509TrustManager trustManager)
-        throws CertificateException, IOException,
-        UnrecoverableKeyException, KeyManagementException {
+        	throws CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
         this.certFile = certFile;
         this.certPassword = certPassword;
         this.trustManager = trustManager;
         this.sslContext = createSSLContext();
-      }
+	}
+
+	  /**
+	   * Creates a CertificateAuthContext with a PKCS12 file. The SSLContext
+	   * is created from the information in the PKCS12 file. This constructor
+	   * should be called when the export password of the PKCS12 file is non-empty.
+	   * @param certFile the p12 file which contains the client's private key
+	   *          and the client's certificate chain
+	   * @param trustManager the X509TrustManager object which is responsible for
+	   *                     deciding if a credential should be trusted or not.
+	   * @param certPassword the export password of the p12 file
+	   * @param sslProtocol the version of the SSL protocol to use.
+	   * @throws CertificateException if any of the certificates in the certFile cannot be loaded
+	   * @throws UnrecoverableKeyException if the certFile has an export password
+	   * @throws KeyManagementException if initializing the SSLContext with the KeyManager fails
+	   * @throws IOException if there is an I/O or format problem with the keystore data,
+	   *                     if a password is required but not given, or if the given password was
+	   *                     incorrect or if the certFile path is invalid or if the file is not found
+	   *                     If the error is due to a wrong password, the cause of the IOException
+	   *                     should be an UnrecoverableKeyException.
+	   */
+	public CertificateAuthContext(String certFile, String certPassword, X509TrustManager trustManager, String sslProtocol)
+			throws CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
+		this.certFile = certFile;
+		this.certPassword = certPassword;
+		this.trustManager = trustManager;
+		this.sslContext = createSSLContext(sslProtocol);
+	}
 
     private SSLContext createSSLContext()
+			throws UnrecoverableKeyException, CertificateException, IOException, KeyManagementException {
+		return createSSLContext(DEFAULT_SSL_PROTOCOL);
+    }
+
+    private SSLContext createSSLContext(String sslProtocol)
       throws CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
       if(certPassword == null) {
         throw new IllegalArgumentException("Certificate export password must not be null");
@@ -1037,7 +1095,11 @@ public class DatabaseClientFactory {
         }
         keyManagerFactory.init(keyStore, certPassword.toCharArray());
         keyMgr = keyManagerFactory.getKeyManagers();
-        sslContext = SSLContext.getInstance("TLSv1.2");
+		if (sslProtocol == null) {
+			sslContext = SSLContext.getInstance(DEFAULT_SSL_PROTOCOL);
+		} else {
+			sslContext = SSLContext.getInstance(sslProtocol);
+		}
       } catch (NoSuchAlgorithmException | KeyStoreException e) {
         throw new IllegalStateException("The certificate algorithm used or the Key store "
           + "Service provider Implementaion (SPI) is invalid. CertificateAuthContext "
