@@ -13,6 +13,8 @@ import com.marklogic.client.test.junit5.RequiresML12;
 import com.marklogic.mgmt.ManageClient;
 import com.marklogic.mgmt.resource.appservers.ServerManager;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.condition.DisabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import javax.net.ssl.SSLContext;
@@ -130,6 +132,9 @@ class OneWaySSLTest {
 		);
 	}
 
+	// The TLS tests are failing on Java 8, because TLSv1.3 is disabled with our version of Java 8.
+	// There may be a way to configure Java 8 to use TLSv1.3, but it is not currently working.
+	@DisabledOnJre(JRE.JAVA_8)
 	@Test
 	void tLS13ClientWithTLS12Server() throws Exception {
 		DatabaseClient client = buildTrustAllClientWithSSLProtocol("TLSv1.3");
@@ -140,6 +145,7 @@ class OneWaySSLTest {
 	}
 
 	@ExtendWith(RequiresML12.class)
+	@DisabledOnJre(JRE.JAVA_8)
 	@Test
 	void tLS13ClientWithTLS13Server() throws Exception {
 		setAppServerMinimumTLSVersion("TLSv1.3");
@@ -152,6 +158,7 @@ class OneWaySSLTest {
 	}
 
 	@ExtendWith(RequiresML12.class)
+	@DisabledOnJre(JRE.JAVA_8)
 	@Test
 	void tLS12ClientWithTLS13ServerShouldFail() throws Exception {
 		setAppServerMinimumTLSVersion("TLSv1.3");
