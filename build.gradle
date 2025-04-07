@@ -42,6 +42,8 @@ subprojects {
 	test {
 		systemProperty "file.encoding", "UTF-8"
 		systemProperty "javax.xml.stream.XMLOutputFactory", "com.sun.xml.internal.stream.XMLOutputFactoryImpl"
+		// Java 8 requires the TLSv1.3 be enabled before using it.
+		systemProperty "jdk.tls.client.protocols", "TLSv1.3,TLSv1.2"
 	}
 
 	// Until we do a cleanup of javadoc errors, the build (and specifically the javadoc task) fails on Java 11
