@@ -206,24 +206,6 @@ pipeline{
       }
     }
 
-		stage('regressions-11.2.0') {
-			when {
-				allOf {
-					branch 'develop'
-					expression {return params.regressions}
-				}
-			}
-			steps {
-				runTests("ml-docker-db-dev-tierpoint.bed-artifactory.bedford.progress.com/marklogic/marklogic-server-ubi:11.2.0-ubi")
-				junit '**/build/**/TEST*.xml'
-			}
-			post {
-				always {
-					tearDownDocker()
-				}
-			}
-		}
-
 		stage('regressions-11') {
 			when {
 				allOf {
