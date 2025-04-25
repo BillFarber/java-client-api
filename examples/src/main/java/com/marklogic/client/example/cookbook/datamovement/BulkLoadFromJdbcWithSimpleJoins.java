@@ -1,36 +1,28 @@
 /*
- * Copyright © 2024 MarkLogic Corporation. All Rights Reserved.
+ * Copyright © 2025 MarkLogic Corporation. All Rights Reserved.
  */
 package com.marklogic.client.example.cookbook.datamovement;
 
 import com.marklogic.client.datamovement.DataMovementManager;
-import com.marklogic.client.datamovement.JobTicket;
 import com.marklogic.client.datamovement.JobReport;
+import com.marklogic.client.datamovement.JobTicket;
 import com.marklogic.client.datamovement.WriteBatcher;
-import com.marklogic.client.example.cookbook.Util.ExampleProperties;
 import com.marklogic.client.example.cookbook.Util;
+import com.marklogic.client.example.cookbook.Util.ExampleProperties;
 import com.marklogic.client.example.cookbook.datamovement.Employee.Salary;
 import com.marklogic.client.example.cookbook.datamovement.Employee.Title;
-
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Calendar;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
-import javax.sql.DataSource;
-import java.text.SimpleDateFormat;
 
 public class BulkLoadFromJdbcWithSimpleJoins {
-  private static Logger logger = LoggerFactory.getLogger(BulkLoadFromJdbcWithSimpleJoins.class);
-  public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
   private static int threadCount = 3;
   private static int batchSize = 3;

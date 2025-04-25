@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 MarkLogic Corporation. All Rights Reserved.
+ * Copyright © 2025 MarkLogic Corporation. All Rights Reserved.
  */
 package com.marklogic.client.datamovement.impl;
 
@@ -62,7 +62,10 @@ class RowBatcherImpl<T>  extends BatcherImpl implements RowBatcher<T> {
 		validateRowsHandle(rowsHandle);
         this.rowsHandle = rowsHandle;
 
-		defaultRowManager = getPrimaryClient().newRowManager();
+		DatabaseClient databaseClient = getPrimaryClient();
+		assert databaseClient != null;
+		defaultRowManager = databaseClient.newRowManager();
+
         super.withBatchSize(DEFAULT_BATCH_SIZE);
         if (moveMgr.getConnectionType() == DatabaseClient.ConnectionType.DIRECT) {
             withForestConfig(moveMgr.getForestConfig());

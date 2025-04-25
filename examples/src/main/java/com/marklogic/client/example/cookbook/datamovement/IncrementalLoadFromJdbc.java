@@ -1,14 +1,10 @@
 /*
- * Copyright © 2024 MarkLogic Corporation. All Rights Reserved.
+ * Copyright © 2025 MarkLogic Corporation. All Rights Reserved.
  */
 package com.marklogic.client.example.cookbook.datamovement;
 
 import com.marklogic.client.DatabaseClient;
-import com.marklogic.client.datamovement.DataMovementManager;
-import com.marklogic.client.datamovement.JobReport;
-import com.marklogic.client.datamovement.JobTicket;
-import com.marklogic.client.datamovement.QueryBatcher;
-import com.marklogic.client.datamovement.WriteBatcher;
+import com.marklogic.client.datamovement.*;
 import com.marklogic.client.document.DocumentPage;
 import com.marklogic.client.document.DocumentRecord;
 import com.marklogic.client.example.cookbook.Util;
@@ -22,13 +18,12 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Demonstrates a way to load a massive volume of data updates from JDBC into
@@ -181,7 +176,6 @@ public class IncrementalLoadFromJdbc extends BulkLoadFromJdbcWithSimpleJoins {
   private static DatabaseClient client = DatabaseClientSingleton.get();
   public static final DataMovementManager moveMgr =
     DatabaseClientSingleton.get().newDataMovementManager();
-  public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
   // uriQueue is where we queue up uris from the source which we still need to
   // compare against the target.  This is the basis for the uris Iterator below.
