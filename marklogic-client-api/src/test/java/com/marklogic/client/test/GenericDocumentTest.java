@@ -25,6 +25,7 @@ import java.util.Random;
 
 import static org.custommonkey.xmlunit.XMLAssert.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class GenericDocumentTest {
@@ -204,25 +205,17 @@ public class GenericDocumentTest {
 
     }
 
-    String[] urisWithSpaces = new String[] { "/a b", "/uri with spaces" };
-    for (String testUri : urisWithSpaces) {
-      try {
-        StringHandle result = new StringHandle();   // should be able to read these, with 404
-        docMgr.read(testUri, result);
-      } catch (ResourceNotFoundException e) {
-        //pass
-      }
-      try {
-        String contents = "<a>" + testUri + "</a>";
-        docMgr.write(testUri, new StringHandle(contents));
-        fail("Server accepted URI with a space in it");
-      } catch (FailedRequestException e) {
-        // pass   cannot write to uris with spaces.
-      }
-    }
-    for (String testUri : urisWithSpaces) {
-      docMgr.delete(testUri);		// can delete with 204.
-    }
+	  final String[] urisWithSpaces = new String[]{"/a b", "/uri with spaces"};
+	  for (String testUri : urisWithSpaces) {
+		  String contents = "<a>" + testUri + "</a>";
+		  docMgr.write(testUri, new StringHandle(contents));
+		  DocumentDescriptor descriptor = docMgr.exists(testUri);
+		  assertEquals(testUri, descriptor.getUri(), "MarkLogic 12 now allows for URIs to have spaces in them.");
+	  }
+
+	  for (String testUri : urisWithSpaces) {
+		  docMgr.delete(testUri);        // can delete with 204.
+	  }
   }
 
 
