@@ -1,4 +1,4 @@
-// Copyright © 2024 MarkLogic Corporation. All Rights Reserved.
+// Copyright © 2025 MarkLogic Corporation. All Rights Reserved.
 
 plugins {
 	id "java-library"
@@ -15,19 +15,13 @@ dependencies {
 	// setup for publishing.
 	api 'com.squareup.okhttp3:okhttp:4.12.0'
 	api 'io.github.rburgst:okhttp-digest:2.7'
-	api 'org.slf4j:slf4j-api:2.0.16'
+	api 'org.slf4j:slf4j-api:2.0.17'
 	api "com.fasterxml.jackson.core:jackson-databind:2.17.2"
-
-	// hsqldb < 2.7 has a High CVE - https://nvd.nist.gov/vuln/detail/CVE-2022-41853 .
-	// And hsqldb 2.6+ requires Java 11+. So this is ignored, along with the associated test,
-	// until the Java Client can drop Java 8 support.
-	// api 'org.hsqldb:hsqldb:2.7.1'
 
 	api 'org.jdom:jdom2:2.0.6.1'
 	api 'org.dom4j:dom4j:2.1.4'
 	api 'com.google.code.gson:gson:2.10.1'
 	api 'net.sourceforge.htmlcleaner:htmlcleaner:2.29'
-	api 'com.opencsv:opencsv:4.6'
-	api 'org.springframework:spring-jdbc:5.3.39'
-	api 'org.apache.commons:commons-lang3:3.12.0'
+	api 'com.opencsv:opencsv:5.10'
+	api 'org.apache.commons:commons-lang3:3.17.0'
 }
