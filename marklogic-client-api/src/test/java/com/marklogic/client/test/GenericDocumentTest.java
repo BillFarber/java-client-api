@@ -3,7 +3,6 @@
  */
 package com.marklogic.client.test;
 
-import com.marklogic.client.FailedRequestException;
 import com.marklogic.client.ResourceNotFoundException;
 import com.marklogic.client.Transaction;
 import com.marklogic.client.document.*;
@@ -12,10 +11,12 @@ import com.marklogic.client.io.*;
 import com.marklogic.client.io.DocumentMetadataHandle.Capability;
 import com.marklogic.client.io.DocumentMetadataHandle.DocumentCollections;
 import com.marklogic.client.io.marker.DocumentPatchHandle;
+import com.marklogic.client.test.junit5.RequiresML12;
 import org.custommonkey.xmlunit.exceptions.XpathException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -25,7 +26,6 @@ import java.util.Random;
 
 import static org.custommonkey.xmlunit.XMLAssert.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class GenericDocumentTest {
@@ -185,6 +185,8 @@ public class GenericDocumentTest {
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
   @Test
+  // Requires MarkLogic 12 now that 12 nightly has been fixed to allow for spaces in URIs.
+  @ExtendWith(RequiresML12.class)
   public void testUrisWithSpaces() {
     DocumentManager docMgr = Common.client.newDocumentManager();
 
@@ -214,7 +216,7 @@ public class GenericDocumentTest {
 	  }
 
 	  for (String testUri : urisWithSpaces) {
-		  docMgr.delete(testUri);        // can delete with 204.
+		  docMgr.delete(testUri);
 	  }
   }
 
