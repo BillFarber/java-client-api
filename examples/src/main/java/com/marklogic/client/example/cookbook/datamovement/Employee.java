@@ -3,18 +3,12 @@
  */
 package com.marklogic.client.example.cookbook.datamovement;
 
-import java.util.Calendar;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.util.Calendar;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class Employee {
-  private static Logger logger = LoggerFactory.getLogger(Employee.class);
   private int employeeId;
   private Calendar birthDate;
   private String firstName;

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 MarkLogic Corporation. All Rights Reserved.
+ * Copyright © 2025 MarkLogic Corporation. All Rights Reserved.
  */
 package com.marklogic.client.test.example.extension;
 
@@ -7,6 +7,7 @@ import com.marklogic.client.FailedRequestException;
 import com.marklogic.client.ForbiddenUserException;
 import com.marklogic.client.ResourceNotFoundException;
 import com.marklogic.client.example.extension.OpenCSVBatcherExample;
+import com.opencsv.exceptions.CsvValidationException;
 import org.junit.jupiter.api.Test;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -16,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class OpenCSVBatcherTest {
   @Test
   public void testMain()
-    throws ResourceNotFoundException, ForbiddenUserException, FailedRequestException
+    throws ResourceNotFoundException, ForbiddenUserException, FailedRequestException, CsvValidationException
   {
     boolean succeeded = false;
     try {
