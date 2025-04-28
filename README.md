@@ -1,7 +1,6 @@
 ![GitHub release](https://img.shields.io/github/release/marklogic/java-client-api.svg)
 ![GitHub last commit](https://img.shields.io/github/last-commit/marklogic/java-client-api.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Known Vulnerabilities](https://snyk.io/test/github/marklogic/java-client-api/badge.svg)](https://snyk.io/test/github/marklogic/java-client-api)
 
 # The MarkLogic Java Client
 
@@ -19,11 +18,12 @@ The client supports the following core features of the MarkLogic database:
 *  Use Optimistic Locking to detect contention without creating locks on the server.
 *  Execute ACID modifications so the change either succeeds or throws an exception.
 *  Execute multi-statement transactions so changes to multiple documents succeed or fail together.
-*  Call Data Services by means of a Java interface on the client for data functionality 
-implemented by an endpoint on the server.
+*  Call Data Services via a Java interface on the client for data functionality implemented by an endpoint on the server.
 
-The client can be used in applications running on Java 8, 11, and 17. If you are using Java 11 or higher and intend
-to use [JAXB](https://docs.oracle.com/javase/tutorial/jaxb/intro/), please see the section below for ensuring that the
+The client is tested on Java 8, 11, 17, and 21 and can safely be used on each of those major Java versions. The client
+may work on more recent major versions of Java but has not been thoroughly tested on those yet.
+
+If you are using Java 11 or higher and intend to use [JAXB](https://docs.oracle.com/javase/tutorial/jaxb/intro/), please see the section below for ensuring that the
 necessary dependencies are available in your application's classpath.
 
 ## QuickStart
@@ -33,13 +33,13 @@ To use the client in your [Maven](https://maven.apache.org/) project, include th
     <dependency>
         <groupId>com.marklogic</groupId>
         <artifactId>marklogic-client-api</artifactId>
-        <version>6.4.1</version>
+        <version>7.1.0</version>
     </dependency>
 
 To use the client in your [Gradle](https://gradle.org/) project, include the following in your `build.gradle` file:
 
     dependencies {
-        implementation "com.marklogic:marklogic-client-api:6.4.1"
+        implementation "com.marklogic:marklogic-client-api:7.1.0"
     }
 
 Next, read [The Java API in Five Minutes](http://developer.marklogic.com/try/java/index) to get started.
