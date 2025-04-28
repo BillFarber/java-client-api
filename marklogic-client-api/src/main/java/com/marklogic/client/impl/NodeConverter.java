@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 MarkLogic Corporation. All Rights Reserved.
+ * Copyright © 2025 MarkLogic Corporation. All Rights Reserved.
  */
 package com.marklogic.client.impl;
 
@@ -62,7 +62,7 @@ public class NodeConverter {
    static private XMLInputFactory getXMLInputFactory() {
       // okay if one thread overwrites another during lazy initialization
       if (xmlInputFactory == null) {
-         xmlInputFactory = XMLInputFactory.newFactory();
+         xmlInputFactory = XmlFactories.makeNewInputFactory();
       }
       return xmlInputFactory;
    }

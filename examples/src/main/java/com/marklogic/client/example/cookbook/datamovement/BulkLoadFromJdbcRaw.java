@@ -1,37 +1,30 @@
 /*
- * Copyright © 2024 MarkLogic Corporation. All Rights Reserved.
+ * Copyright © 2025 MarkLogic Corporation. All Rights Reserved.
  */
 package com.marklogic.client.example.cookbook.datamovement;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.marklogic.client.DatabaseClient;
 import com.marklogic.client.admin.ServerConfigurationManager;
 import com.marklogic.client.admin.TransformExtensionsManager;
-import com.marklogic.client.datamovement.ApplyTransformListener;
-import com.marklogic.client.datamovement.DataMovementManager;
-import com.marklogic.client.datamovement.JobTicket;
-import com.marklogic.client.datamovement.JobReport;
-import com.marklogic.client.datamovement.QueryBatcher;
-import com.marklogic.client.datamovement.WriteBatcher;
+import com.marklogic.client.datamovement.*;
 import com.marklogic.client.document.ServerTransform;
-import com.marklogic.client.example.cookbook.Util.ExampleProperties;
 import com.marklogic.client.example.cookbook.Util;
-import com.marklogic.client.query.StructuredQueryDefinition;
+import com.marklogic.client.example.cookbook.Util.ExampleProperties;
 import com.marklogic.client.query.StructuredQueryBuilder;
-
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import com.marklogic.client.query.StructuredQueryDefinition;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.UUID;
-import javax.sql.DataSource;
 
 /** BulkLoadFromJdbcRaw shows one way to load rows as-is from JDBC (the source
  * system) into MarkLogic (the target system), then transform (or harmonize)
@@ -65,7 +58,6 @@ public class BulkLoadFromJdbcRaw {
 
   // the ISO 8601 format is expected for dates in MarkLogic Server
   public static final String ISO_8601_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
-  public static final SimpleDateFormat dateFormat = new SimpleDateFormat(ISO_8601_FORMAT);
 
   public static void main(String[] args) throws IOException, SQLException {
     new BulkLoadFromJdbcRaw().run();
@@ -102,10 +94,10 @@ public class BulkLoadFromJdbcRaw {
     s.put("salary", row.getInt("salary"));
     Calendar fromDate = Calendar.getInstance();
     fromDate.setTime(row.getDate("from_date"));
-    s.put("fromDate", dateFormat.format(fromDate.getTime()));
+    s.put("fromDate", new SimpleDateFormat(ISO_8601_FORMAT).format(fromDate.getTime()));
     Calendar toDate = Calendar.getInstance();
     toDate.setTime(row.getDate("to_date"));
-    s.put("toDate", dateFormat.format(toDate.getTime()));
+    s.put("toDate", new SimpleDateFormat(ISO_8601_FORMAT).format(toDate.getTime()));
   }
 
   // take data from a JDBC ResultSet (row) and populate an ObjectNode (JSON) object
@@ -114,10 +106,10 @@ public class BulkLoadFromJdbcRaw {
     t.put("title", row.getString("title"));
     Calendar fromDate = Calendar.getInstance();
     fromDate.setTime(row.getDate("from_date"));
-    t.put("fromDate", dateFormat.format(fromDate.getTime()));
+    t.put("fromDate", new SimpleDateFormat(ISO_8601_FORMAT).format(fromDate.getTime()));
     Calendar toDate = Calendar.getInstance();
     toDate.setTime(row.getDate("to_date"));
-    t.put("toDate", dateFormat.format(toDate.getTime()));
+    t.put("toDate", new SimpleDateFormat(ISO_8601_FORMAT).format(toDate.getTime()));
   }
 
   public void load() throws IOException, SQLException {
