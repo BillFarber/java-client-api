@@ -15,14 +15,9 @@ import com.marklogic.client.eval.EvalResultIterator;
 import com.marklogic.client.functionaltest.BasicJavaClientREST;
 import com.marklogic.client.io.*;
 import com.marklogic.client.query.StructuredQueryBuilder;
+import com.marklogic.mgmt.ManageClient;
+import com.marklogic.mgmt.ManageConfig;
 import org.apache.commons.io.FileUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.jupiter.api.*;
 import org.w3c.dom.Node;
 
@@ -1062,21 +1057,9 @@ public class QBFailover extends BasicJavaClientREST {
 
 	private boolean isRunning(String host) {
 		try {
-
-			DefaultHttpClient client = new DefaultHttpClient();
-			client.getCredentialsProvider().setCredentials(new AuthScope(host, 7997),
-					new UsernamePasswordCredentials("admin", "admin"));
-
-			HttpGet get = new HttpGet("http://" + host + ":7997?format=json");
-			HttpResponse response = client.execute(get);
-			ResponseHandler<String> handler = new BasicResponseHandler();
-			String body = handler.handleResponse(response);
-			if (body.toLowerCase().contains("healthy")) {
-				return true;
-			} else {
-				return false;
-			}
-
+			ManageClient client = new ManageClient(new ManageConfig(host, 7997, getAdminUser(), getAdminPassword()));
+			String output = client.getJson("?format=json");
+			return output.contains("healthy");
 		} catch (Exception e) {
 			return false;
 		}
