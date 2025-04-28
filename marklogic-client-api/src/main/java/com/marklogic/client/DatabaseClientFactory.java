@@ -3,7 +3,6 @@
  */
 package com.marklogic.client;
 
-import com.marklogic.client.extra.httpclient.HttpClientConfigurator;
 import com.marklogic.client.extra.okhttpclient.OkHttpClientConfigurator;
 import com.marklogic.client.impl.*;
 import com.marklogic.client.io.marker.ContentHandle;
@@ -1295,8 +1294,6 @@ public class DatabaseClientFactory {
 				  OkHttpClient.Builder clientBuilder = okHttpClient.newBuilder();
 				  ((OkHttpClientConfigurator) configurator).configure(clientBuilder);
 				  ((OkHttpServices) services).setClientImplementation(clientBuilder.build());
-			  } else if (configurator instanceof HttpClientConfigurator) {
-				  // do nothing as we no longer use HttpClient so there's nothing this can configure
 			  } else {
 				  throw new IllegalArgumentException("A ClientConfigurator must implement OkHttpClientConfigurator");
 			  }
@@ -1347,7 +1344,7 @@ public class DatabaseClientFactory {
    * @param configurator	the listener for configuring the communication library
    */
   static public void addConfigurator(ClientConfigurator<?> configurator) {
-    if (!HttpClientConfigurator.class.isInstance(configurator) && !OkHttpClientConfigurator.class.isInstance(configurator)) {
+    if (!OkHttpClientConfigurator.class.isInstance(configurator)) {
       throw new IllegalArgumentException(
         "Configurator must implement OkHttpClientConfigurator"
       );
