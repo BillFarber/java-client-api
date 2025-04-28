@@ -5,8 +5,6 @@ package com.marklogic.client.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.marklogic.client.ext.helper.LoggingObject;
-import com.marklogic.client.ext.modulesloader.ssl.SimpleX509TrustManager;
 import io.undertow.Undertow;
 import io.undertow.client.ClientCallback;
 import io.undertow.client.ClientConnection;
@@ -22,6 +20,8 @@ import io.undertow.server.handlers.proxy.ProxyConnection;
 import io.undertow.server.handlers.proxy.ProxyHandler;
 import io.undertow.util.Headers;
 import okhttp3.Credentials;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
 import org.xnio.IoUtils;
@@ -30,15 +30,13 @@ import org.xnio.OptionMap;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.security.cert.X509Certificate;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -57,7 +55,9 @@ import java.util.concurrent.TimeUnit;
  * convert that fake access token into a basic authentication value that is included in the proxied request to
  * MarkLogic.
  */
-public class ReverseProxyServer extends LoggingObject {
+public class ReverseProxyServer {
+
+	private static final Logger logger = LoggerFactory.getLogger(ReverseProxyServer.class);
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	private static final String FAKE_ACCESS_TOKEN_INDICATOR = "FAKE_RPS_TOKEN:";
@@ -210,7 +210,22 @@ public class ReverseProxyServer extends LoggingObject {
 		return sslContext;
 	}
 
-	private static class ReverseProxyClient extends LoggingObject implements ProxyClient {
+	private static class SimpleX509TrustManager implements X509TrustManager {
+		@Override
+		public void checkClientTrusted(X509Certificate[] chain, String authType) {
+		}
+
+		@Override
+		public void checkServerTrusted(X509Certificate[] chain, String authType) {
+		}
+
+		@Override
+		public X509Certificate[] getAcceptedIssuers() {
+			return new X509Certificate[0];
+		}
+	}
+
+	private static class ReverseProxyClient implements ProxyClient {
 		private static final ProxyTarget TARGET = new ProxyTarget() {
 		};
 
