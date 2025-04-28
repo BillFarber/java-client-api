@@ -22,16 +22,10 @@ import com.marklogic.client.io.DocumentMetadataHandle.Capability;
 import com.marklogic.client.io.DocumentMetadataHandle.DocumentCollections;
 import com.marklogic.client.io.DocumentMetadataHandle.DocumentProperties;
 import com.marklogic.client.query.StructuredQueryBuilder;
+import com.marklogic.mgmt.ManageClient;
 import org.apache.commons.io.FileUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.*;
+import org.springframework.http.ResponseEntity;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -2706,24 +2700,11 @@ public class WriteHostBatcherTest extends BasicJavaClientREST {
 
 			}
 			xmlBuff.append('}');
-			DefaultHttpClient client = new DefaultHttpClient();
-			client.getCredentialsProvider().setCredentials(new AuthScope(host, 8002),
-					new UsernamePasswordCredentials("admin", "admin"));
 
-			HttpPost post = new HttpPost("http://" + host + ":8002" + endpoint);
-			post.addHeader("Content-type", "application/json");
-			post.setEntity(new StringEntity(xmlBuff.toString()));
-
-			HttpResponse response = client.execute(post);
-			HttpEntity respEntity = response.getEntity();
-
-			if (respEntity != null) {
-				// EntityUtils to get the response content
-				String content = EntityUtils.toString(respEntity);
-				System.out.println(content);
-			}
+			ManageClient manageClient = newManageClient();
+			ResponseEntity<String> response = manageClient.postXml(endpoint, xmlBuff.toString());
+			System.out.println("Response: " + response.getBody());
 		} catch (Exception e) {
-			// writing error to Log
 			e.printStackTrace();
 		}
 	}
