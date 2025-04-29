@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 MarkLogic Corporation. All Rights Reserved.
+ * Copyright © 2025 MarkLogic Corporation. All Rights Reserved.
  */
 
 package com.marklogic.client.datamovement;
@@ -111,6 +111,7 @@ public class PathSplitter {
             return Stream.empty();
         }
         try {
+			// Polaris warns on an unclosed stream, but it's up to the client to close the stream.
             InputStream inputStream = openInputStream(path, extension);
             return splitter.split(inputStream);
         } catch (Exception e) {
@@ -126,9 +127,10 @@ public class PathSplitter {
         }
 
         try {
+			// Polaris warns on an unclosed stream, but it's up to the client to close the stream.
             InputStream inputStream = openInputStream(path, extension);
             String filename = getFileName(path).toString();
-            return splitter.splitWriteOperations(inputStream, getFileName(path).toString());
+            return splitter.splitWriteOperations(inputStream, filename);
         } catch (Exception e) {
             throw new RuntimeException("", e);
         }
