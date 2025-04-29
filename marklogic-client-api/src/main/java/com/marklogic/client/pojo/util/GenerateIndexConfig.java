@@ -3,14 +3,6 @@
  */
 package com.marklogic.client.pojo.util;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.JavaType;
@@ -19,12 +11,15 @@ import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.introspect.AnnotatedParameter;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.fasterxml.jackson.databind.util.ClassUtil;
-import com.marklogic.client.pojo.annotation.GeospatialLatitude;
-import com.marklogic.client.pojo.annotation.GeospatialLongitude;
-import com.marklogic.client.pojo.annotation.GeospatialPathIndexProperty;
-import com.marklogic.client.pojo.annotation.Id;
-import com.marklogic.client.pojo.annotation.PathIndexProperty;
+import com.marklogic.client.pojo.annotation.*;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
 
 /** <p>Generates a MarkLogic index configuration file in JSON format describing the indexes
  * required by the annotations on the specific classes.
@@ -63,30 +58,37 @@ public class GenerateIndexConfig {
    * @throws ClassNotFoundException if the classes are not found on the classpath
    */
   public static void main(String[] args) throws IOException, ClassNotFoundException {
-    String[] classes = new String[] {};
-    Writer out = null;
-    try {
-      for (int i=0; i < args.length; i++) {
-        String name = args[i];
-        if (name.startsWith("-") && name.length() > 1 && ++i < args.length) {
-          String argValue = args[i];
-          if ( "-classes".equals(name) ) {
-            classes = argValue.split("\\s+");
-          } else if ( "-file".equals(name) ) {
-            out= new FileWriter(argValue);
-          }
-        }
-      }
-      if ( out == null ) out = new OutputStreamWriter(System.out);
+	  String[] classes = new String[]{};
+	  for (int i = 0; i < args.length; i++) {
+		  String name = args[i];
+		  if (name.startsWith("-") && name.length() > 1 && ++i < args.length) {
+			  String argValue = args[i];
+			  if ("-classes".equals(name)) {
+				  classes = argValue.split("\\s+");
+			  }
+		  }
+	  }
 
-      ObjectMapper mapper = new ObjectMapper();
-      generateConfig(classes, mapper, out);
-    } finally {
-      if ( out != null ) out.close();
-    }
+	  try (Writer writer = determineWriter(args)) {
+		  ObjectMapper mapper = new ObjectMapper();
+		  generateConfig(classes, mapper, writer);
+	  }
   }
 
-  private static class AnnotationFound<T extends Annotation> {
+	private static Writer determineWriter(String[] args) throws IOException {
+		for (int i = 0; i < args.length; i++) {
+			String name = args[i];
+			if (name.startsWith("-") && name.length() > 1 && ++i < args.length) {
+				String argValue = args[i];
+				if ("-file".equals(name)) {
+					return new FileWriter(argValue);
+				}
+			}
+		}
+		return new OutputStreamWriter(System.out);
+	}
+
+	private static class AnnotationFound<T extends Annotation> {
     T annotation;
     String foundMessage;
   }

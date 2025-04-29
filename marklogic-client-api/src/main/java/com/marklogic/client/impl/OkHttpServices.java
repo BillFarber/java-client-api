@@ -5491,6 +5491,8 @@ public class OkHttpServices implements RESTServices {
 		@Override
 		public void writeTo(BufferedSink sink) throws IOException {
 			if (obj instanceof InputStream) {
+				// Polaris logged a warning for this, where the InputStream is not closed. But closing it causes digest
+				// authentication to fail. Oddly, only a test that uses an invalid user fails.
 				sink.writeAll(Okio.source((InputStream) obj));
 			} else if (obj instanceof File) {
 				try (Source source = Okio.source((File) obj)) {

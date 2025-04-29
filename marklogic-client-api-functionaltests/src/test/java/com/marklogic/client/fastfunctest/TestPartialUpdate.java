@@ -109,27 +109,17 @@ public class TestPartialUpdate extends AbstractFunctionalTest {
     assertTrue( content1.contains(xmlStr2Mod));
   }
 
-  /*
-   * Used to test Git issue # 94 along with uber-app server. use a bad user to
-   * authenticate client. Should be throwing FailedRequestException Exception.
-   * Message : Local message: write failed: Unauthorized. Server Message:
-   * Unauthorized
-   */
-	@Test
-  public void testJSONParserException()
-  {
-    System.out.println("Running testPartialUpdateJSON");
+  	@Test
+	public void invalidEvalClient() {
+		try (DatabaseClient badClient = newClientAsUser("bad-eval-user", "x")) {
+			FailedRequestException ex = assertThrows(
+				FailedRequestException.class,
+				() -> writeDocumentUsingInputStreamHandle(badClient, "json-original.json", "/partial-update/", "JSON")
+			);
 
-    String[] filenames = { "json-original.json" };
-
-	DatabaseClient badClient = newClientAsUser("bad-eval-user", "x");
-
-    // write docs
-    for (String filename : filenames) {
-      assertThrows(FailedRequestException.class, () -> writeDocumentUsingInputStreamHandle(badClient, filename, "/partial-update/", "JSON"));
-    }
-    badClient.release();
-  }
+			assertTrue(ex.getMessage().contains("Server Message: Unauthorized"), "Unexpected error: " + ex.getMessage());
+		}
+	}
 
   @Test
   public void testPartialUpdateJSON() throws IOException {
